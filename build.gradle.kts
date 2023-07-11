@@ -1,15 +1,33 @@
 plugins {
     id("com.gradle.plugin-publish") version "1.2.1"
     id("com.diffplug.spotless") version "6.22.0"
-    signing
 //    id("org.spdx.sbom") version "0.1.0"
 }
 
-group = "org.spdx"
+group = "com.eygraber"
 description = "A gradle plugin generating spdx sboms"
 
 repositories {
     mavenCentral()
+}
+
+gradlePlugin {
+    plugins {
+        create("sbom") {
+            id = "com.eygraber.sbom"
+            displayName = "spdx-gradle-plugin"
+            description = "A prototype spdx gradle plugin"
+            tags.add("spdx")
+            tags.add("sbom")
+            implementationClass = "org.spdx.sbom.gradle.SpdxSbomPlugin"
+        }
+
+        whenObjectAdded {
+            if(name == "spdxSbom") {
+                remove(this)
+            }
+        }
+    }
 }
 
 dependencies {
@@ -96,16 +114,6 @@ spotless {
 tasks.withType<AbstractArchiveTask>().configureEach {
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
-}
-
-tasks.withType<Sign> {
-    onlyIf("skip.signing is not set") { !project.hasProperty("skip.signing") }
-}
-
-signing {
-    val signingKey: String? by project
-    val signingPassword: String? by project
-    useInMemoryPgpKeys(signingKey, signingPassword)
 }
 
 // spdxSbom {
